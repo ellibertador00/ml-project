@@ -76,8 +76,15 @@ default_rain = float(state_df["total_rain_growing"].mean())
 temp_min, temp_max = float(df["avg_temp_growing"].min()), float(df["avg_temp_growing"].max())
 rain_min, rain_max = float(df["total_rain_growing"].min()), float(df["total_rain_growing"].max())
 
-avg_temp = st.sidebar.slider("Avg Temp (Growing Season)", temp_min, temp_max, default_temp)
-total_rain = st.sidebar.slider("Total Rain (Growing Season)", rain_min, rain_max, default_rain)
+avg_temp = st.sidebar.slider(
+    "Avg Temp (Growing Season) [°C]",
+    temp_min, temp_max, default_temp
+)
+
+total_rain = st.sidebar.slider(
+    "Total Rain (Growing Season) [mm]",
+    rain_min, rain_max, default_rain
+)
 
 predict_btn = st.sidebar.button("Predict Yield ✅", use_container_width=True)
 
