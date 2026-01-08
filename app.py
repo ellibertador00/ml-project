@@ -4,7 +4,7 @@ import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-st.sidebar.error("✅ UPDATED VERSION LOADED (Mode switch)")
+
 
 # =========================
 # PAGE CONFIG + LIGHT UI CSS
