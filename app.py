@@ -5,10 +5,10 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-
 # =========================
 # PAGE CONFIG + LIGHT UI CSS
 # =========================
+# NOTE: set_page_config MUST be the first Streamlit command
 st.set_page_config(page_title="Crop Yield Prediction", page_icon="🌾", layout="wide")
 
 st.markdown("""
@@ -97,7 +97,7 @@ if mode == "Evaluate on Test Set (2020–2025)":
         avg_temp = default_temp
         total_rain = default_rain
     else:
-        year = st.sidebar.selectbox("Year (Test only)", test_years, index=len(test_years)-1)
+        year = st.sidebar.selectbox("Year (Test only)", test_years, index=len(test_years) - 1)
         row = state_df[state_df["Year"] == int(year)].iloc[0]
         avg_temp = float(row["avg_temp_growing"])
         total_rain = float(row["total_rain_growing"])
@@ -191,7 +191,8 @@ with right:
     y_pred = model.predict(X_test)
 
     mae = mean_absolute_error(y_test, y_pred)
-    rmse = mean_squared_error(y_test, y_pred, squared=False)
+    # ✅ sklearn 1.6-safe RMSE
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     r2 = r2_score(y_test, y_pred)
 
     m1, m2, m3 = st.columns(3)
@@ -224,21 +225,24 @@ with right:
         st.caption("Residuals centered around 0 indicate no major systematic bias.")
 
     with tabs[2]:
-        # Pipeline feature importance (your saved model supports this)
-        feature_names = model.named_steps["preprocessor"].get_feature_names_out()
-        importances = model.named_steps["model"].feature_importances_
+        # Pipeline feature importance (works if saved model is a Pipeline)
+        try:
+            feature_names = model.named_steps["preprocessor"].get_feature_names_out()
+            importances = model.named_steps["model"].feature_importances_
 
-        fi = pd.DataFrame({"Feature": feature_names, "Importance": importances})
-        fi = fi.sort_values("Importance", ascending=False).head(15)
+            fi = pd.DataFrame({"Feature": feature_names, "Importance": importances})
+            fi = fi.sort_values("Importance", ascending=False).head(15)
 
-        st.write("Top 15 important features:")
-        st.dataframe(fi, hide_index=True, use_container_width=True)
+            st.write("Top 15 important features:")
+            st.dataframe(fi, hide_index=True, use_container_width=True)
 
-        fig = plt.figure(figsize=(7, 4.2))
-        plt.barh(fi["Feature"][::-1], fi["Importance"][::-1])
-        plt.title("Top 15 Feature Importances")
-        st.pyplot(fig, use_container_width=True)
-        st.caption("Higher importance means the feature contributes more to the model’s decisions.")
+            fig = plt.figure(figsize=(7, 4.2))
+            plt.barh(fi["Feature"][::-1], fi["Importance"][::-1])
+            plt.title("Top 15 Feature Importances")
+            st.pyplot(fig, use_container_width=True)
+            st.caption("Higher importance means the feature contributes more to the model’s decisions.")
+        except Exception as e:
+            st.warning(f"Feature importance not available for this saved model: {e}")
 
     with tabs[3]:
         st.write("Yield trend for selected state:")
